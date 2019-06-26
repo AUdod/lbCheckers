@@ -184,12 +184,15 @@ def traceSearch(startState, searchState,directionsDicts, lenght):
 
     checkedPathes = [] ## Пути конечной длины
     fullyChecked = [] ## Родительские пути
-    startPath = ''
     searchedPathes = []
     pos = startState.index(0)
     checker = ''
+    stpBack = {'u' : 'd', 'd' : 'u', 'r' : 'l', 'l' : 'r'}
 
-    def moveForward(pos): 
+    
+
+
+    def moveForward(): 
         ##Идти вперед до упора
         """ for dirn, nPos in directionsDicts[pos]:
             if  """
@@ -197,18 +200,65 @@ def traceSearch(startState, searchState,directionsDicts, lenght):
         for dirn, nPos in newPoses:
             newPath = checker + dirn
             ## Проверка на не упор
-            if len(newPath) < lenght
+            if len(newPath) < lenght and not newPath in fullyChecked:
+                checker = newPath
+                print("Неполный путь: ", newPath)
+                pos = nPos
+                moveForward()
+            if len(newPath) == lenght and not newPath in checkedPathes:
+                checker = newPath
+                pos = nPos
+                print("Полный путь: ", newPath)
+                break
+ 
         
     def moveBackward(): ## Идти назад до нахождения ноды, от которой есть куда идти
+        lastStep = checker[-1:]
+        checker = checker[:-1]
+        sBack = stpBack[lastStep]
+        pos = directionsDicts[pos][sBack]
+        print("Шаг назад: ", sBack, " Полученная позиция: ", pos) 
+        newPoses = directionsDicts[pos]
+        haveWay = False
+        for dirn, nPos in newPoses:
+            newPath = checker+dirn
+            if len(newPath) < lenght and not newPath in fullyChecked:
+                haveWay = True
+            if len(newPath) == lenght and not newPath in checkedPathes:
+                haveWay = True
+        if not haveWay:
+            print("Нет пути от ", checker)
+            fullyChecked.append(checker)
+            moveBackward()
+    
+    
+    def generateStateFromPath():
+        indexPos = startState.index(0)
+        currState = startState.copy()
+        for c in checker:
+            currPos = directionsDicts[indexPos][c]
+            currState[indexPos] = currState[currPos]
+            currState[currPos] = 0
+            indexPos = currPos
+        return currState
+
+
 
 
     while True: ##Основной цикл
-        moveForward(pos)
+        moveForward()
         
-        ##проверка чекера на длину
+        ##проверка чекера на длину и включение. В случае, если достигли нужной длины, проверяем состояние
         
-        
+        if len(checker) == lenght:
+            newState = generateStateFromPath()
+            if newState == searchState:
+                searchedPathes.append(checker)
+                checkedPathes.append(checker)
+            else:
+                checkedPathes.append(checker)
         if checker == '':
+            print("Граф закончился")
             break
 
         moveBackward()
@@ -242,6 +292,7 @@ directions = generateStatesDirections(3)
 """ dfsPath = deapthSearch(startState, endState, directions, 362880) """
 """ wsPath = widthSearch(startState, endState, directions, 100) """
 tsResult = traceSearch(startState, endState, directions, 4)
+""" print(directions) """
 print("\nПолученный путь поиска по лучу на заданную глубину: ", tsResult)
 
 """ directions = generateStatesDirections(3) """
